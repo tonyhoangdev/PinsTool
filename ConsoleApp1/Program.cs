@@ -371,9 +371,18 @@ namespace ConsoleApp1
        static string s32sdk_path = @"d:\04_Projects\ASDK-S32_SDK\sdk_codebase";
        static string cpu = "S32K148_176";
 
+        private static void ParseArguments(string[] args)
+        {
+            if (args.Length != 0)
+            {
+                s32sdk_path = args[1];
+                cpu = args[2];
+            }
+        }
+
         static void Main(string[] args)
         {
-
+            ParseArguments(Environment.GetCommandLineArgs());
 
             string fileSignal = string.Format(@"{0}\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\CPUs\{1}\signal_configuration.xml", s32sdk_path, cpu);
             string fileProperty = string.Format(@"{0}\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\CPUs\{1}\property_model_configuration.xml", s32sdk_path, cpu);

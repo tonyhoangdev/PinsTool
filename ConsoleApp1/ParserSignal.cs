@@ -901,7 +901,7 @@ namespace ConsoleApp1
 
             private string nameField;
 
-            private byte coordsField;
+            private string coordsField;
 
             /// <remarks/>
             [System.Xml.Serialization.XmlElementAttribute("connections")]
@@ -947,7 +947,7 @@ namespace ConsoleApp1
 
             /// <remarks/>
             [System.Xml.Serialization.XmlAttributeAttribute()]
-            public byte coords
+            public string coords
             {
                 get
                 {

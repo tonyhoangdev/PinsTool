@@ -853,11 +853,11 @@ namespace ConsoleApp1
         public partial class ListItemTGrupItemGrupItemTGrupItemGrupItemTGrupItemEditorDataCoords
         {
 
-            private byte valueField;
+            private string valueField;
 
             /// <remarks/>
             [System.Xml.Serialization.XmlAttributeAttribute()]
-            public byte value
+            public string value
             {
                 get
                 {
