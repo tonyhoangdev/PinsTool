@@ -12,11 +12,18 @@ namespace ConsoleApp1
 {
     class Program
     {
-        static void Main(string[] args)
-        {
-            string file = @"D:\04_Projects\ASDK-S32_SDK\sdk_codebase\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\CPUs\S32K148_144\signal_configuration.xml";
 
-            ParserSignal.signal_configuration sc = DeserialModuleSignal(file);
+        public class PinsFile
+        {
+            public string Signal { get; set; }
+            public string Property { get; set; }
+            public string Item { get; set; }
+            public string Prg { get; set; }
+        }
+
+        private static void ProcessSignal(PinsFile fileIn, PinsFile fileOut)
+        {
+            ParserSignal.signal_configuration sc = DeserialModuleSignal(fileIn.Signal);
 
             ParserSignal.functional_properties_declarationsFunctional_property_declaration propertyDec = new ParserSignal.functional_properties_declarationsFunctional_property_declaration()
             {
@@ -26,26 +33,22 @@ namespace ConsoleApp1
             };
 
             List<ParserSignal.functional_properties_declarationsFunctional_property_declarationState_declaration> lstState = new List<ParserSignal.functional_properties_declarationsFunctional_property_declarationState_declaration>();
-
             lstState.Add(new ParserSignal.functional_properties_declarationsFunctional_property_declarationState_declaration()
             {
                 id = "state_0",
                 name = "Low",
                 description = "Low"
             });
-
             lstState.Add(new ParserSignal.functional_properties_declarationsFunctional_property_declarationState_declaration()
             {
                 id = "state_1",
                 name = "High",
                 description = "High",
             });
-
             propertyDec.state_declaration = lstState.ToArray();
 
             List<ParserSignal.functional_properties_declarationsFunctional_property_declaration> lstFuncProperty = new List<ParserSignal.functional_properties_declarationsFunctional_property_declaration>();
             List<ParserSignal.pinsPin> lstPins = new List<ParserSignal.pinsPin>();
-
 
             bool haveInit = false;
 
@@ -61,7 +64,6 @@ namespace ConsoleApp1
             }
 
             sc.functional_properties_declarations = lstFuncProperty.ToArray();
-
 
 
             // list functional property
@@ -131,15 +133,12 @@ namespace ConsoleApp1
 
             sc.pins = lstPins.ToArray();
 
-            SerialModuleSignal(sc, "outSignal.xml");
+            SerialModuleSignal(sc, fileOut.Signal);
+        }
+        private static void ProcessProperty(PinsFile fileIn, PinsFile fileOut)
+        {
 
-
-            ///////////////////////////////////////////////////////////////////////////////////////
-            ///
-            ///////////////////////////////////////////////////////////////////////////////////////
-            // Property 
-            string fileProperty = @"d:\04_Projects\ASDK-S32_SDK\sdk_codebase\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\CPUs\S32K148_144\property_model_configuration.xml";
-            ParserProperty.property_configuration pc = DeserialModuleProperty(fileProperty);
+            ParserProperty.property_configuration pc = DeserialModuleProperty(fileIn.Property);
 
             List<ParserProperty.propertiesEnum_property> lstProperty = new List<ParserProperty.propertiesEnum_property>();
 
@@ -190,14 +189,11 @@ namespace ConsoleApp1
                 }
             }
             pc.properties = lstProperty.ToArray();
-            SerialModuleProperty(pc, "outProperty.xml");
-
-            ///////////////////////////////////////////////////////////////////////////////////////
-            ///
-            ///////////////////////////////////////////////////////////////////////////////////////
-            // Item
-            string fileItem = @"D:\04_Projects\ASDK-S32_SDK\sdk_codebase\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\Beans\PinSettings\IncS32K148_144.item";
-            ParserItem.ListItem pi = DeserialModuleItem(fileItem);
+            SerialModuleProperty(pc, fileOut.Property);
+        }
+        private static void ProcessItem(PinsFile fileIn, PinsFile fileOut)
+        {
+            ParserItem.ListItem pi = DeserialModuleItem(fileIn.Item);
             ParserItem.ListItemTGrupItem tGrupItem = new ParserItem.ListItemTGrupItem();
             tGrupItem = pi.TGrupItem;
 
@@ -213,7 +209,6 @@ namespace ConsoleApp1
             List<ParserItem.ListItemTGrupItemGrupItem> lstGrupItemLevel2 = new List<ParserItem.ListItemTGrupItemGrupItem>();
 
 
-
             foreach (var item in tGrupItem.Children)
             {
                 if (item.TGrupItem.Name.Equals("Electrical properties"))
@@ -225,7 +220,11 @@ namespace ConsoleApp1
                     foreach (var item2 in item.TGrupItem.EditorData.electrical_properties_declarations)
                     {
                         lstElect.Add(item2);
-                        haveInitValueItemProp = true;
+
+                        if (item2.symbol_suffix.Contains("InitValue"))
+                        {
+                            haveInitValueItemProp = true;
+                        }                        
                     }
 
                     if (!haveInitValueItemProp)
@@ -247,7 +246,15 @@ namespace ConsoleApp1
                         foreach (var item3 in item2.TGrupItem.Children)
                         {
                             lstInitPins.Add(item3);
-                            haveInitValueItem = true;
+
+                            if (item2.TGrupItem.Symbol.Contains("PT"))
+                            {
+                                if ((item3.TPinFuncPropItem != null) && (item3.TPinFuncPropItem.Symbol.Contains("InitValue")))
+                                {
+                                    haveInitValueItem = true;
+                                }
+                            }
+                               
                         }
 
                         if (!haveInitValueItem)
@@ -293,71 +300,118 @@ namespace ConsoleApp1
 
             tGrupItem.Children = lstGrupItemLevel2.ToArray();
             pi.TGrupItem = tGrupItem;
-            SerialModuleItem(pi, "outItem.xml");
-
-            ///////////////////////////////////////////////////////////////////////////////////////
-            ///
-            ///////////////////////////////////////////////////////////////////////////////////////
-            // prg
-            StreamReader sr = new StreamReader(@"D:\04_Projects\ASDK-S32_SDK\sdk_codebase\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\Beans\PinSettings\Drivers\S32K\PinSettings_S32K148_144.prg");
-
-            string pat = @"(\s+)%:count=%get_item_config_sequence\(PT(\w+\d+)_(\w+),PinMuxInit\)";
-            string str = sr.ReadToEnd();
-            MatchCollection m = Regex.Matches(str, pat);
-
-            string sepa = m[0].Groups[1].Value;
-
+            SerialModuleItem(pi, fileOut.Item);
+        }
+        private static void ProcessPrg(PinsFile fileIn, PinsFile fileOut)
+        {
             StringBuilder sb = new StringBuilder();
-            sb.Append(str);
 
-
-
-            Lookup<String, String> ptLook;
-            Lookup<String, String> lookMatch;
-            List<KeyValuePair<string, string>> lstPT = new List<KeyValuePair<string, string>>();
-            List<KeyValuePair<string, string>> lstMatch = new List<KeyValuePair<string, string>>();
-
-            foreach (Match item in m)
+            using (StreamReader sr = new StreamReader(fileIn.Prg))
             {
-                lstPT.Add(new KeyValuePair<string, string>(item.Groups[2].Value, item.Groups[3].Value));
-                lstMatch.Add(new KeyValuePair<string, string>(item.Groups[2].Value, item.Value));
-            }
-            ptLook = (Lookup<string, string>)lstPT.ToLookup((item) => item.Key, (item) => item.Value);
-            lookMatch = (Lookup<string, string>)lstMatch.ToLookup((item) => item.Key, (item) => item.Value);
+                string pat = @"(\s+)%:count=%get_item_config_sequence\(PT(\w+\d+)_(\w+),PinMuxInit\)";
+                string str = sr.ReadToEnd();
+                MatchCollection m = Regex.Matches(str, pat);
 
-            List<string> lstKey = new List<string>();
+                string sepa = m[0].Groups[1].Value;                
+                sb.Append(str);
 
-            foreach (var item in ptLook)
-            {
-                lstKey.Add(item.Key);
-            }
-            
+                Lookup<String, String> ptLook;
+                Lookup<String, String> lookMatch;
+                List<KeyValuePair<string, string>> lstPT = new List<KeyValuePair<string, string>>();
+                List<KeyValuePair<string, string>> lstMatch = new List<KeyValuePair<string, string>>();
 
-            foreach (var item in lstKey)
-            {
-                string[] a = ptLook[item.ToString()].ToArray();
-
-                bool haveKeyInit = false;
-                foreach (var item2 in a)
+                foreach (Match item in m)
                 {
-                    if (item2.Contains("InitValue"))
+                    lstPT.Add(new KeyValuePair<string, string>(item.Groups[2].Value, item.Groups[3].Value));
+                    lstMatch.Add(new KeyValuePair<string, string>(item.Groups[2].Value, item.Value));
+                }
+                ptLook = (Lookup<string, string>)lstPT.ToLookup((item) => item.Key, (item) => item.Value);
+                lookMatch = (Lookup<string, string>)lstMatch.ToLookup((item) => item.Key, (item) => item.Value);
+
+                List<string> lstKey = new List<string>();
+
+                foreach (var item in ptLook)
+                {
+                    lstKey.Add(item.Key);
+                }
+
+
+                foreach (var item in lstKey)
+                {
+                    string[] a = ptLook[item.ToString()].ToArray();
+
+                    bool haveKeyInit = false;
+                    foreach (var item2 in a)
                     {
-                        haveKeyInit = true;
-                        break;
+                        if (item2.Contains("InitValue"))
+                        {
+                            haveKeyInit = true;
+                            break;
+                        }
+                    }
+
+                    if (!haveKeyInit)
+                    {
+                        string s = string.Format("{0}{1}_{2},PinMuxInit)", sepa, "%:count=%get_item_config_sequence(PT" + item.ToString(), "InitValue");
+                        string s2 = string.Format("{0}{1}", sepa, "%include Common\\GenInitConfigSequence.prg(PinMuxInit)");
+
+                        sb.Replace(lookMatch[item.ToString()].ToArray()[0], s + s2 + lookMatch[item.ToString()].ToArray()[0]);
                     }
                 }
 
-                if (!haveKeyInit)
-                {
-                    string s = string.Format("{0}{1}_{2},PinMuxInit)", sepa, "%:count=%get_item_config_sequence(PT" + item.ToString(), "InitValue");
-                    string s2 = string.Format("{0}{1}", sepa, "%include Common\\GenInitConfigSequence.prg(PinMuxInit)");
-
-                    sb.Replace(lookMatch[item.ToString()].ToArray()[0], s + s2 + lookMatch[item.ToString()].ToArray()[0]); 
-                }
+                sb.Append(sepa.Split(' ')[0]);
             }
 
-            TextWriter sw = new StreamWriter("outPRG.prg");
-            sw.Write(sb.ToString());
+            using (StreamWriter sw = new StreamWriter(fileOut.Prg))
+            {
+                sw.Write(sb.ToString());
+            }             
+        }
+
+       static string s32sdk_path = @"d:\04_Projects\ASDK-S32_SDK\sdk_codebase";
+       static string cpu = "S32K148_176";
+
+        static void Main(string[] args)
+        {
+
+
+            string fileSignal = string.Format(@"{0}\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\CPUs\{1}\signal_configuration.xml", s32sdk_path, cpu);
+            string fileProperty = string.Format(@"{0}\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\CPUs\{1}\property_model_configuration.xml", s32sdk_path, cpu);
+            string fileItem = string.Format(@"{0}\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\Beans\PinSettings\Inc{1}.item", s32sdk_path, cpu);
+            string filePrg = string.Format(@"{0}\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\Beans\PinSettings\Drivers\S32K\PinSettings_{1}.prg", s32sdk_path, cpu);
+
+            string fileSignalOut = string.Format(@"{0}\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\CPUs\{1}\signal_configuration_out.xml", s32sdk_path, cpu);
+            string filePropertyOut = string.Format(@"{0}\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\CPUs\{1}\property_model_configuration_out.xml", s32sdk_path, cpu);
+            string fileItemOut = string.Format(@"{0}\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\Beans\PinSettings\Inc{1}_out.item", s32sdk_path, cpu);
+            string filePrgOut = string.Format(@"{0}\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\Beans\PinSettings\Drivers\S32K\PinSettings_{1}_out.prg", s32sdk_path, cpu);
+
+            PinsFile pinsFileIn = new PinsFile
+            {
+                Signal = fileSignal,
+                Property = fileProperty,
+                Item = fileItem,
+                Prg = filePrg
+            };
+
+            PinsFile pinsFileOut = new PinsFile
+            {
+                Signal = fileSignalOut,
+                Property = filePropertyOut,
+                Item = fileItemOut,
+                Prg = filePrgOut
+            };
+            
+            // Signal 
+            ProcessSignal(pinsFileIn, pinsFileOut);
+
+            // Property 
+            ProcessProperty(pinsFileIn, pinsFileOut);
+
+            // Item
+            ProcessItem(pinsFileIn, pinsFileOut);
+
+            // prg
+            ProcessPrg(pinsFileIn, pinsFileOut);
         }
 
         private static void SerialModuleSignal(ParserSignal.signal_configuration sc, string fileNameOut)
