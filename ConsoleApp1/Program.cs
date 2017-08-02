@@ -384,6 +384,8 @@ namespace ConsoleApp1
         {
             ParseArguments(Environment.GetCommandLineArgs());
 
+            Console.WriteLine(Environment.GetCommandLineArgs()[0] + ": " + cpu);
+
             string fileSignal = string.Format(@"{0}\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\CPUs\{1}\signal_configuration.xml", s32sdk_path, cpu);
             string fileProperty = string.Format(@"{0}\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\CPUs\{1}\property_model_configuration.xml", s32sdk_path, cpu);
             string fileItem = string.Format(@"{0}\tools\pex\Repositories\SDK_RELEASE_VERSION_ID_Repository\Beans\PinSettings\Inc{1}.item", s32sdk_path, cpu);
@@ -409,7 +411,10 @@ namespace ConsoleApp1
                 Item = fileItemOut,
                 Prg = filePrgOut
             };
-            
+
+            Console.WriteLine(Environment.GetCommandLineArgs()[0] + ": ...loading");
+            Console.WriteLine(Environment.GetCommandLineArgs()[0] + ": ...processing");
+
             // Signal 
             ProcessSignal(pinsFileIn, pinsFileOut);
 
@@ -421,6 +426,8 @@ namespace ConsoleApp1
 
             // prg
             ProcessPrg(pinsFileIn, pinsFileOut);
+
+            
         }
 
         private static void SerialModuleSignal(ParserSignal.signal_configuration sc, string fileNameOut)
