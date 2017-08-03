@@ -29,7 +29,7 @@ namespace ConsoleApp1
             {
                 id = "InitValue",
                 name = "Initial Value",
-                description = "Initial Value"
+                description = "Initial Value",
             };
 
             List<ParserSignal.functional_properties_declarationsFunctional_property_declarationState_declaration> lstState = new List<ParserSignal.functional_properties_declarationsFunctional_property_declarationState_declaration>();
@@ -37,7 +37,8 @@ namespace ConsoleApp1
             {
                 id = "state_0",
                 name = "Low",
-                description = "Low"
+                description = "Low",
+
             });
             lstState.Add(new ParserSignal.functional_properties_declarationsFunctional_property_declarationState_declaration()
             {
@@ -66,42 +67,9 @@ namespace ConsoleApp1
             sc.functional_properties_declarations = lstFuncProperty.ToArray();
 
 
-            // list functional property
-            ParserSignal.pinsPinFunctional_property pinFunc = new ParserSignal.pinsPinFunctional_property();
-
-            List<ParserSignal.pinsPinFunctional_propertyState> lstPinsFuncState = new List<ParserSignal.pinsPinFunctional_propertyState>();
-
-            lstPinsFuncState.Add(new ParserSignal.pinsPinFunctional_propertyState()
-            {
-                id = "state_0",
-                configuration = new ParserSignal.pinsPinFunctional_propertyStateConfiguration()
-                {
-                    assign = new ParserSignal.pinsPinFunctional_propertyStateConfigurationAssign()
-                    {
-                        bit_field_value = "0"
-                    }
-                }
-
-            });
-
-            lstPinsFuncState.Add(new ParserSignal.pinsPinFunctional_propertyState()
-            {
-                id = "state_1",
-                configuration = new ParserSignal.pinsPinFunctional_propertyStateConfiguration()
-                {
-                    assign = new ParserSignal.pinsPinFunctional_propertyStateConfigurationAssign()
-                    {
-                        bit_field_value = "0x1"
-                    }
-                }
-            });
-
-            pinFunc.id = "InitValue";
-            pinFunc.@default = "state_0";
-            pinFunc.state = lstPinsFuncState.ToArray();
-
             foreach (var item in sc.pins)
             {
+
                 if (!item.name.Contains("PT"))
                 {
                     lstPins.Add(item);
@@ -122,6 +90,44 @@ namespace ConsoleApp1
 
                 if (!haveInit)
                 {
+
+                    // list functional property
+                    ParserSignal.pinsPinFunctional_property pinFunc = new ParserSignal.pinsPinFunctional_property();
+
+                    List<ParserSignal.pinsPinFunctional_propertyState> lstPinsFuncState = new List<ParserSignal.pinsPinFunctional_propertyState>();
+
+                    lstPinsFuncState.Add(new ParserSignal.pinsPinFunctional_propertyState()
+                    {
+                        id = "state_0",
+                        configuration = new ParserSignal.pinsPinFunctional_propertyStateConfiguration()
+                        {
+                            assign = new ParserSignal.pinsPinFunctional_propertyStateConfigurationAssign()
+                            {
+                                bit_field_value = "0",
+                                configuration_step = string.Format("init_PORT{0}", item.name.Substring(2, 1))
+
+                            }
+                        }
+
+                    });
+
+                    lstPinsFuncState.Add(new ParserSignal.pinsPinFunctional_propertyState()
+                    {
+                        id = "state_1",
+                        configuration = new ParserSignal.pinsPinFunctional_propertyStateConfiguration()
+                        {
+                            assign = new ParserSignal.pinsPinFunctional_propertyStateConfigurationAssign()
+                            {
+                                bit_field_value = "0x1"
+                            }
+                        }
+                    });
+
+                    pinFunc.id = "InitValue";
+                    pinFunc.@default = "state_0";
+                    pinFunc.state = lstPinsFuncState.ToArray();
+
+
                     lstPinsFunc.Add(pinFunc);
                 }
 
@@ -135,18 +141,13 @@ namespace ConsoleApp1
 
             SerialModuleSignal(sc, fileOut.Signal);
         }
+
         private static void ProcessProperty(PinsFile fileIn, PinsFile fileOut)
         {
 
             ParserProperty.property_configuration pc = DeserialModuleProperty(fileIn.Property);
 
             List<ParserProperty.propertiesEnum_property> lstProperty = new List<ParserProperty.propertiesEnum_property>();
-
-            List<ParserProperty.propertiesEnum_propertyState> lstEnumState = new List<ParserProperty.propertiesEnum_propertyState>();
-
-            lstEnumState.Add(new ParserProperty.propertiesEnum_propertyState() { id = "state_0", caption = "Initial Value is configured on the corresponding pin", description = "Initial Value is configured on the corresponding pin" });
-            lstEnumState.Add(new ParserProperty.propertiesEnum_propertyState() { id = "state_1", caption = "Initial Value is configured on the corresponding pin", description = "Initial Value is configured on the corresponding pin" });
-
 
             string pattern = @"(PORT\w)_PCR(\d+)_(\w+)";
 
@@ -171,9 +172,37 @@ namespace ConsoleApp1
                         pt.caption = "Initial Value";
                         pt.description = "Initial Value";
                         pt.@default = "state_0";
+
+                        List<ParserProperty.propertiesEnum_propertyState> lstEnumState = new List<ParserProperty.propertiesEnum_propertyState>();
+
+                        ParserProperty.propertiesEnum_propertyStateConfiguration stateConfig0 = new ParserProperty.propertiesEnum_propertyStateConfiguration()
+                        {
+                            const_assign = new ParserProperty.propertiesEnum_propertyStateConfigurationConst_assign()
+                            {
+                                check_conflict = true,
+                                bit_field_value = "0",
+                                configuration_step = string.Format("init_{0}", prePort)
+                            }
+                        };
+
+                        ParserProperty.propertiesEnum_propertyStateConfiguration stateConfig1 = new ParserProperty.propertiesEnum_propertyStateConfiguration()
+                        {
+                            const_assign = new ParserProperty.propertiesEnum_propertyStateConfigurationConst_assign()
+                            {
+                                check_conflict = true,
+                                bit_field_value = "0x1",
+                                configuration_step = string.Format("init_{0}", prePort)
+                            }
+                        };
+
+
+                        lstEnumState.Add(new ParserProperty.propertiesEnum_propertyState() { id = "state_0", caption = "Initial Value is configured on the corresponding pin", description = "Initial Value is configured on the corresponding pin", configuration = stateConfig0 });
+                        lstEnumState.Add(new ParserProperty.propertiesEnum_propertyState() { id = "state_1", caption = "Initial Value is configured on the corresponding pin", description = "Initial Value is configured on the corresponding pin", configuration = stateConfig1 });
+
                         pt.state = lstEnumState.ToArray();
 
                         pt.id = string.Format("{0}_PCR{1}_InitValue", prePort, preID);
+
 
                         preID = currID;
                         prePort = item2.Groups[1].Value;
@@ -224,7 +253,7 @@ namespace ConsoleApp1
                         if (item2.symbol_suffix.Contains("InitValue"))
                         {
                             haveInitValueItemProp = true;
-                        }                        
+                        }
                     }
 
                     if (!haveInitValueItemProp)
@@ -254,7 +283,7 @@ namespace ConsoleApp1
                                     haveInitValueItem = true;
                                 }
                             }
-                               
+
                         }
 
                         if (!haveInitValueItem)
@@ -312,7 +341,7 @@ namespace ConsoleApp1
                 string str = sr.ReadToEnd();
                 MatchCollection m = Regex.Matches(str, pat);
 
-                string sepa = m[0].Groups[1].Value;                
+                string sepa = m[0].Groups[1].Value;
                 sb.Append(str);
 
                 Lookup<String, String> ptLook;
@@ -365,11 +394,11 @@ namespace ConsoleApp1
             using (StreamWriter sw = new StreamWriter(fileOut.Prg))
             {
                 sw.Write(sb.ToString());
-            }             
+            }
         }
 
-       static string s32sdk_path = @"d:\04_Projects\ASDK-S32_SDK\sdk_codebase";
-       static string cpu = "S32K148_176";
+        static string s32sdk_path = @"d:\04_Projects\ASDK-S32_SDK\sdk_codebase";
+        static string cpu = "S32K148_176";
 
         private static void ParseArguments(string[] args)
         {
@@ -427,7 +456,7 @@ namespace ConsoleApp1
             // prg
             ProcessPrg(pinsFileIn, pinsFileOut);
 
-            
+
         }
 
         private static void SerialModuleSignal(ParserSignal.signal_configuration sc, string fileNameOut)
