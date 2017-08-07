@@ -104,7 +104,7 @@ namespace ConsoleApp1
                             assign = new ParserSignal.pinsPinFunctional_propertyStateConfigurationAssign()
                             {
                                 bit_field_value = "0",
-                                configuration_step = string.Format("init_PORT{0}", item.name.Substring(2, 1))
+                                //configuration_step = string.Format("init_PORT{0}", item.name.Substring(2, 1))
 
                             }
                         }
@@ -119,7 +119,7 @@ namespace ConsoleApp1
                             assign = new ParserSignal.pinsPinFunctional_propertyStateConfigurationAssign()
                             {
                                 bit_field_value = "0x1",
-                                configuration_step = string.Format("init_PORT{0}", item.name.Substring(2, 1))
+                                //configuration_step = string.Format("init_PORT{0}", item.name.Substring(2, 1))
                             }
                         }
                     });
@@ -182,7 +182,7 @@ namespace ConsoleApp1
                             {
                                 check_conflict = true,
                                 bit_field_value = "0",
-                                configuration_step = string.Format("init_{0}", prePort)
+                                //configuration_step = string.Format("init_{0}", prePort)
                             }
                         };
 
@@ -192,7 +192,7 @@ namespace ConsoleApp1
                             {
                                 check_conflict = true,
                                 bit_field_value = "0x1",
-                                configuration_step = string.Format("init_{0}", prePort)
+                                //configuration_step = string.Format("init_{0}", prePort)
                             }
                         };
 
