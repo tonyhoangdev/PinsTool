@@ -53,7 +53,11 @@ namespace ConsoleApp1
             foreach (var item in sc.functional_properties_declarations)
             {
                 lstFuncProperty.Add(item);
-                haveInit = true;
+
+                if (item.id.Contains("InitValue"))
+                {
+                    haveInit = true;
+                }                
             }
 
             if (!haveInit)
@@ -66,7 +70,6 @@ namespace ConsoleApp1
 
             foreach (var item in sc.pins)
             {
-
                 if (!item.name.Contains("PT"))
                 {
                     lstPins.Add(item);
@@ -460,10 +463,13 @@ namespace ConsoleApp1
         private static void SerialModuleSignal(ParserSignal.signal_configuration sc, string fileNameOut)
         {
             XmlSerializer xml = new XmlSerializer(typeof(ParserSignal.signal_configuration));
+            XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+            ns.Add(string.Empty, string.Empty);
+            ns.Add("PinXML", "http://www.freescale.com/ProcessorExpert/PinsModel");
 
             using (TextWriter writer = new StreamWriter(fileNameOut))
             {
-                xml.Serialize(writer, sc);
+                xml.Serialize(writer, sc, ns);
             }
         }
 
@@ -485,10 +491,13 @@ namespace ConsoleApp1
         private static void SerialModuleProperty(ParserProperty.property_configuration pc, string fileNameOut)
         {
             XmlSerializer xml = new XmlSerializer(typeof(ParserProperty.property_configuration));
+            XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+            ns.Add(string.Empty, string.Empty);
+            ns.Add("pc", "http://www.freescale.com/ProcessorExpert/PropertyConfiguration.xsd");
 
             using (TextWriter writer = new StreamWriter(fileNameOut))
             {
-                xml.Serialize(writer, pc);
+                xml.Serialize(writer, pc, ns);
             }
         }
 
@@ -510,10 +519,12 @@ namespace ConsoleApp1
         private static void SerialModuleItem(ParserItem.ListItem pi, string fileNameOut)
         {
             XmlSerializer xml = new XmlSerializer(typeof(ParserItem.ListItem));
+            XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+            ns.Add(string.Empty, string.Empty);
 
             using (TextWriter writer = new StreamWriter(fileNameOut))
             {
-                xml.Serialize(writer, pi);
+                xml.Serialize(writer, pi, ns);
             }
         }
 
