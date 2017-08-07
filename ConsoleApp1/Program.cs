@@ -4,15 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Serialization;
 
 namespace ConsoleApp1
 {
     class Program
     {
-
         public class PinsFile
         {
             public string Signal { get; set; }
@@ -118,7 +115,8 @@ namespace ConsoleApp1
                         {
                             assign = new ParserSignal.pinsPinFunctional_propertyStateConfigurationAssign()
                             {
-                                bit_field_value = "0x1"
+                                bit_field_value = "0x1",
+                                configuration_step = string.Format("init_PORT{0}", item.name.Substring(2, 1))
                             }
                         }
                     });
