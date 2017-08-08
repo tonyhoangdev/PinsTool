@@ -336,6 +336,7 @@ namespace ConsoleApp1
             pi.TGrupItem = tGrupItem;
             SerialModuleItem(pi, fileOut.Item);
         }
+
         private static void ProcessPrg(PinsFile fileIn, PinsFile fileOut)
         {
             StringBuilder sb = new StringBuilder();
@@ -402,6 +403,22 @@ namespace ConsoleApp1
             }
         }
 
+        private static void ProcessPre(PinsFile fileIn, PinsFile fileOut)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            using (StreamReader sr = new StreamReader(fileIn.Item))
+            {
+                sb.Append(sr.ReadToEnd());
+                sb.Replace("&#10;", "");
+            }
+
+            using (StreamWriter sw = new StreamWriter(fileOut.Item))
+            {
+                sw.Write(sb.ToString());
+            }
+        }
+
         static string s32sdk_path = @"d:\04_Projects\ASDK-S32_SDK\sdk_codebase";
         static string cpu = "S32K148_176";
 
@@ -448,6 +465,9 @@ namespace ConsoleApp1
 
             Console.WriteLine(Environment.GetCommandLineArgs()[0] + ": ...loading");
             Console.WriteLine(Environment.GetCommandLineArgs()[0] + ": ...processing");
+
+            // Remove &#10;
+            ProcessPre(pinsFileIn, pinsFileIn);
 
             // Signal 
             ProcessSignal(pinsFileIn, pinsFileOut);
